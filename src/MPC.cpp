@@ -53,15 +53,26 @@ class FG_eval {
      *   the Solver function below.
      */
     //first get the cost
+    fg[0]=0;
     for (int i = 0; i < N; i++)
     {
-      fg[0] += 3000 * CppAD::pow(vars[cte_start + i], 2);
-      fg[0] += 3000 * CppAD::pow(vars[epsi_start + i], 2);
+      fg[0] += 5000 * CppAD::pow(vars[cte_start + i], 2);
+      fg[0] += 5000 * CppAD::pow(vars[epsi_start + i], 2);
       fg[0] += CppAD::pow(vars[v_start + i] - ref_v, 2);
     } //get the cost for cte && epsi && velocity,and put cte & epsi with high weights
+
+    for (int i = 0; i < N - 1; i++) {
+      fg[0] += 5*CppAD::pow(vars[delta_start + i], 2);
+      fg[0] += 5*CppAD::pow(vars[a_start + i], 2);
+      // try adding penalty for speed + steer
+      fg[0] += 700*CppAD::pow(vars[delta_start + i] * vars[v_start+i], 2);
+    }
+
+
+
     for (int i = 0; i < N - 2; i++)
     {
-      fg[0] += 200 * CppAD::pow(vars[delta_start + i + 1] - vars[delta_start + i], 2);
+      fg[0] += 100 * CppAD::pow(vars[delta_start + i + 1] - vars[delta_start + i], 2);
       fg[0] += 10 * CppAD::pow(vars[a_start + i + 1] - vars[a_start + i], 2);
     } //get the jerk constraints
 
@@ -188,7 +199,7 @@ std::vector<double> MPC::Solve(const VectorXd &state, const VectorXd &coeffs) {
   // Should be 0 besides initial state.
   Dvector constraints_lowerbound(n_constraints);
   Dvector constraints_upperbound(n_constraints);
-  for (int i = 0; i < n_constraints; ++i) {
+  for (int i = 0; i < n_constraints; i++) {
     constraints_lowerbound[i] = 0;
     constraints_upperbound[i] = 0;
   }
